@@ -1,0 +1,23 @@
+{
+  "name": "hello-world-tutorial",
+  "version": "1.0.0",
+  "description": "A minimal Node.js and Express tutorial exposing a single GET /hello endpoint that returns 'Hello world'.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "nodejs",
+    "express",
+    "tutorial",
+    "hello-world"
+  ],
+  "author": "Blitzy",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
