@@ -22,6 +22,15 @@ const express = require('express');
 //    `app` is the central object used to register routes and start the server.
 const app = express();
 
+// 2a. Enforce exact, case-sensitive route matching.
+//     By default Express matches routes case-INSENSITIVELY, so `/hello` would
+//     also answer `/Hello`, `/HELLO`, and so on. This tutorial's contract is a
+//     single endpoint whose path is EXACTLY `/hello` (lowercase), so we opt in
+//     to case-sensitive routing. With this enabled, only the exact lowercase
+//     `/hello` matches; any other casing falls through to Express's built-in
+//     404 response, keeping the endpoint faithful to the `/hello` contract.
+app.set('case sensitive routing', true);
+
 // 3. Resolve the TCP port the server will listen on.
 //    Reading process.env.PORT lets you change the port without editing code
 //    (for example: `PORT=8080 npm start`). When PORT is not set we fall back
