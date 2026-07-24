@@ -22,14 +22,22 @@ const express = require('express');
 //    `app` is the central object used to register routes and start the server.
 const app = express();
 
-// 2a. Enforce exact, case-sensitive route matching.
-//     By default Express matches routes case-INSENSITIVELY, so `/hello` would
-//     also answer `/Hello`, `/HELLO`, and so on. This tutorial's contract is a
-//     single endpoint whose path is EXACTLY `/hello` (lowercase), so we opt in
-//     to case-sensitive routing. With this enabled, only the exact lowercase
-//     `/hello` matches; any other casing falls through to Express's built-in
-//     404 response, keeping the endpoint faithful to the `/hello` contract.
+// 2a. Enforce exact route matching (case-sensitive AND strict).
+//     By default Express matches routes case-INSENSITIVELY and treats a
+//     trailing slash as optional, so a plain `/hello` route would also answer
+//     `/Hello`, `/HELLO`, and `/hello/`. This tutorial's contract is a single
+//     endpoint whose path is EXACTLY `/hello` (lowercase, no trailing slash),
+//     so we opt in to BOTH matching options before registering any route:
+//       - 'case sensitive routing' treats `/hello` and `/Hello` as different,
+//         so only the lowercase spelling matches.
+//       - 'strict routing' treats `/hello` and `/hello/` as different, so the
+//         trailing-slash form does NOT match.
+//     With both enabled, only the exact path `/hello` matches; every other
+//     variation (a different casing or a trailing slash) falls through to
+//     Express's built-in 404 response, keeping the endpoint faithful to the
+//     `/hello` contract.
 app.set('case sensitive routing', true);
+app.set('strict routing', true);
 
 // 3. Resolve the TCP port the server will listen on.
 //    Reading process.env.PORT lets you change the port without editing code
@@ -42,7 +50,9 @@ const PORT = process.env.PORT || 3000;
 //    text "Hello world":
 //      - res.type('text/plain') sets Content-Type to "text/plain; charset=utf-8".
 //      - res.send('Hello world') writes the body and replies with HTTP 200 OK.
-//    Requests to any other path are handled by Express's built-in 404 response.
+//    Requests to any other path — including a different casing (`/Hello`) or a
+//    trailing slash (`/hello/`) — do not match and receive Express's built-in
+//    404 response.
 app.get('/hello', (req, res) => {
   res.type('text/plain').send('Hello world');
 });
