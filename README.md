@@ -66,7 +66,7 @@ The endpoint replies with HTTP status `200 OK` and `Content-Type: text/plain; ch
 
 - **Creates the app** — it imports Express with `const express = require('express')` and creates an application instance with `const app = express()`.
 - **Registers one route** — `app.get('/hello', …)` defines the only endpoint; its handler replies with `res.type('text/plain').send('Hello world')`, which sets the plain-text `Content-Type` and sends the body with a `200 OK` status.
-- **Starts listening** — `app.listen(process.env.PORT || 3000, …)` binds the HTTP server to the configured port (defaulting to `3000`) and logs the startup line shown above.
+- **Starts listening** — it reads the port from `process.env.PORT` (defaulting to `3000`) and validates that it is a whole number between 1 and 65535. It logs the startup line shown above only once the port is successfully bound, using the actual bound port; if the port is invalid or already in use, it prints a concise error and exits with a nonzero status instead of falsely reporting success.
 - **Handles everything else** — routing is configured to be both **case-sensitive** and **strict**, so only the exact lowercase path `/hello` matches. Any other request — a different casing such as `/Hello`, a trailing-slash variant such as `/hello/`, or an unrelated path such as `/goodbye` — falls through to Express 5's built-in `404 Not Found` response.
 
 ---

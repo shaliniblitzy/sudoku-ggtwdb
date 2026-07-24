@@ -39,11 +39,33 @@ const app = express();
 app.set('case sensitive routing', true);
 app.set('strict routing', true);
 
-// 3. Resolve the TCP port the server will listen on.
+// 3. Resolve and validate the TCP port the server will listen on.
 //    Reading process.env.PORT lets you change the port without editing code
-//    (for example: `PORT=8080 npm start`). When PORT is not set we fall back
-//    to 3000 — the default port documented in the README.
-const PORT = process.env.PORT || 3000;
+//    (for example: `PORT=8080 npm start`). When PORT is unset or empty we fall
+//    back to 3000 — the default port documented in the README.
+//
+//    A TCP port must be a whole number between 1 and 65535, so we validate the
+//    value up front and fail fast with a clear, one-line message when it is
+//    invalid. Without this check Node would react confusingly: an out-of-range
+//    value (e.g. PORT=65536) crashes with a long stack trace, while a
+//    non-numeric value (e.g. PORT=foo) is treated as a file path and silently
+//    binds a Unix-domain socket instead of a TCP port — neither is helpful in a
+//    tutorial. Validating here keeps startup behavior predictable and honest.
+const DEFAULT_PORT = 3000;
+const rawPort = process.env.PORT;
+let PORT;
+if (rawPort === undefined || rawPort === '') {
+  // PORT not provided (or empty): use the documented default.
+  PORT = DEFAULT_PORT;
+} else {
+  PORT = Number(rawPort);
+  if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) {
+    console.error(
+      `Invalid PORT "${rawPort}": expected an integer between 1 and 65535.`
+    );
+    process.exit(1);
+  }
+}
 
 // 4. Register the single route for this tutorial: GET /hello.
 //    When a client sends `GET /hello`, this handler runs and returns the exact
@@ -58,7 +80,24 @@ app.get('/hello', (req, res) => {
 });
 
 // 5. Start the HTTP server and begin listening for incoming requests.
-//    Once the server is ready, log the URL so you know where to reach it.
-app.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
+//    app.listen() returns the underlying Node.js http.Server. Because binding
+//    to a port happens asynchronously, we handle its two possible outcomes
+//    explicitly instead of assuming success:
+//      - 'listening' fires once the socket is actually bound. Only THEN do we
+//        log the URL, and we read the real port back from server.address() so
+//        the printed URL is always the one you can actually connect to.
+//      - 'error' fires when binding fails — most commonly EADDRINUSE, when the
+//        chosen port is already in use. We print a concise message and exit
+//        with a nonzero status so the failure is honest and easy to detect,
+//        rather than falsely logging that the server started.
+const server = app.listen(PORT);
+
+server.on('listening', () => {
+  const { port } = server.address();
+  console.log(`Server listening on http://localhost:${port}`);
+});
+
+server.on('error', (err) => {
+  console.error(`Failed to start server on port ${PORT}: ${err.message}`);
+  process.exit(1);
 });
